@@ -8,11 +8,11 @@ Linux_Specific_Data :: struct {
 num_lock_mask: u32;
 XK_Num_Lock :: 0xFF7F;
 
-platform_init_linux :: (ctx: *System_Hotkey_Context) {
+platform_init_linux :: (ctx: *System_Hotkey_Context) -> bool {
     display := XOpenDisplay(null);
     if !display {
         log_error("Failed to open X display");
-        return;
+        return false;
     }
 
     ctx.linux_data.display = display;
@@ -25,20 +25,28 @@ platform_init_linux :: (ctx: *System_Hotkey_Context) {
     if ctx.verbose {
         print("System Hotkey: NumLock Mask detected: %\n", num_lock_mask);
     }
+    return true;
 }
 
 platform_shutdown_linux :: (ctx: *System_Hotkey_Context) {
-    // Ungrab all keys
-    for cb, key: ctx.hotkey_map {
-        platform_unregister_hotkey_linux(ctx, key);
+    // Only clean up if display was opened
+    if ctx.linux_data.display != null {
+        // Ungrab all keys
+        for cb, key: ctx.hotkey_map {
+            platform_unregister_hotkey_linux(ctx, key);
+        }
+        XCloseDisplay(ctx.linux_data.display);
     }
-    XCloseDisplay(ctx.linux_data.display);
     table_reset(*ctx.hotkey_map);
     table_reset(*ctx.hotkey_to_user_data_map);
 }
 
 platform_register_hotkey_linux :: (ctx: *System_Hotkey_Context, hotkey: Hotkey, callback: Hotkey_Callback, user_data: *void) -> bool {
     display := ctx.linux_data.display;
+    if display == null {
+        log_error("Cannot register hotkey: X display not available");
+        return false;
+    }
     root := ctx.linux_data.root;
 
     modifiers := to_x11_modifiers(hotkey.modifiers);
@@ -108,6 +116,7 @@ platform_unregister_hotkey_linux :: (ctx: *System_Hotkey_Context, hotkey: Hotkey
 
 platform_poll_events_linux :: (ctx: *System_Hotkey_Context) {
     display := ctx.linux_data.display;
+    if display == null return;  // No display available
 
     while XPending(display) > 0 {
         event: XEvent;
