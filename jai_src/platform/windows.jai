@@ -1,6 +1,20 @@
+// Windows API bindings not included in Jai's Windows module
+user32 :: #system_library "user32";
+
+RegisterHotKey :: (hWnd: HWND, id: s32, fsModifiers: u32, vk: u32) -> BOOL #foreign user32;
+UnregisterHotKey :: (hWnd: HWND, id: s32) -> BOOL #foreign user32;
+
+// Hotkey modifier constants
+MOD_ALT :: 0x0001;
+MOD_CONTROL :: 0x0002;
+MOD_SHIFT :: 0x0004;
+MOD_WIN :: 0x0008;
+
+// Hotkey message
+WM_HOTKEY :: 0x0312;
 
 Windows_Specific_Data :: struct {
-    next_hotkey_id: int = 0;
+    next_hotkey_id: s32 = 0;
 }
 
 platform_init_windows :: (ctx: *System_Hotkey_Context) {
@@ -65,9 +79,9 @@ platform_poll_events_windows :: (ctx: *System_Hotkey_Context) {
     msg: MSG;
     while PeekMessageA(*msg, null, 0, 0, PM_REMOVE) {
         if msg.message == WM_HOTKEY {
-            
-            hotkey_id := msg.wParam;
-            
+
+            hotkey_id := cast(s32) msg.wParam;
+
             found, callback := table_find(*ctx.hotkey_id_to_callback_map, hotkey_id);
             if found {
                 

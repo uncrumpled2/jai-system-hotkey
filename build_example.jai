@@ -15,7 +15,6 @@
     for example_options.import_path {
         array_add(*new_example_import_path, it);
     }
-    array_add(*new_example_import_path, "/root/programming/jai/modules");
     array_add(*new_example_import_path, "jai_src"); // Add jai_src to import path for example
     example_options.import_path = new_example_import_path;
     example_options.output_executable_name = "system_hotkey_example";

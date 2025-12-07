@@ -49,9 +49,9 @@ System_Hotkey_Context :: struct {
     // Platform-specific data will go here
     #if OS == .WINDOWS {
         windows_data: Windows_Specific_Data;
-        hotkey_map: Table(Hotkey, int, hash_hotkey, compare_hotkeys);
-        hotkey_id_to_callback_map: Table(int, Hotkey_Callback);
-        hotkey_id_to_user_data_map: Table(int, *void);
+        hotkey_map: Table(Hotkey, s32, hash_hotkey, compare_hotkeys);
+        hotkey_id_to_callback_map: Table(s32, Hotkey_Callback);
+        hotkey_id_to_user_data_map: Table(s32, *void);
     }
     #if OS == .LINUX {
         linux_data: Linux_Specific_Data;
